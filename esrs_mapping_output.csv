@@ -1,0 +1,7 @@
+column,concept,esrs
+timestamp,unknown,UNKNOWN
+location,unknown,UNKNOWN
+energy_kwh,energy_consumption,ESRS E1-5
+scope1_emissions_kgco2e,ghg_scope1,ESRS E1-6
+water_liters,water_usage,ESRS E3-4
+waste_kg,waste,ESRS E5-3
