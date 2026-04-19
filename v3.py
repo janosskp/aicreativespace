@@ -5,7 +5,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 
 
 # =========================================================
-# 🧠 1. ESG KNOWLEDGE BASE (enhanced with context)
+# 🧠 1. ESG KNOWLEDGE BASE
 # =========================================================
 ESG_CONCEPTS = {
     "energy_consumption": {
@@ -15,22 +15,22 @@ ESG_CONCEPTS = {
 
     "ghg_scope1": {
         "esrs": "ESRS E1-6",
-        "description": "direct emissions fuel combustion diesel gas company vehicles boilers onsite combustion"
+        "description": "direct emissions fuel combustion diesel gas company vehicles boilers onsite combustion co2 scope1"
     },
 
     "ghg_scope2": {
         "esrs": "ESRS E1-6",
-        "description": "indirect emissions purchased electricity grid energy consumption upstream energy"
+        "description": "indirect emissions purchased electricity grid energy consumption upstream energy co2 scope2"
     },
 
     "water_usage": {
         "esrs": "ESRS E3-4",
-        "description": "water consumption liters usage cooling facility water withdrawal"
+        "description": "water consumption liters usage cooling facility water withdrawal water usage"
     },
 
     "waste": {
         "esrs": "ESRS E5-3",
-        "description": "waste disposal landfill recycling kg production waste materials"
+        "description": "waste disposal landfill recycling kg production waste materials wastekg"
     }
 }
 
@@ -38,12 +38,11 @@ ESG_CONCEPTS = {
 # =========================================================
 # 🧠 2. INTELLIGENCE ENGINE
 # =========================================================
-class ESGContextIntelligenceV2:
+class ESGContextIntelligenceV3:
 
     def __init__(self):
         self.model = SentenceTransformer("all-MiniLM-L6-v2")
 
-        # precompute embeddings
         self.embeddings = {
             k: self.model.encode(v["description"])
             for k, v in ESG_CONCEPTS.items()
@@ -52,7 +51,22 @@ class ESGContextIntelligenceV2:
         self.metadata_fields = {"timestamp", "date", "location", "site", "id"}
 
     # =====================================================
-    # 🧠 3. METADATA FILTER
+    # 🧹 3. DATA CLEANING (CRITICAL FIX)
+    # =====================================================
+    def clean_columns(self, df):
+
+        df.columns = (
+            df.columns
+            .str.strip()
+            .str.lower()
+            .str.replace(" ", "_")
+            .str.replace("-", "_")
+        )
+
+        return df
+
+    # =====================================================
+    # 🧠 4. METADATA FILTER
     # =====================================================
     def is_metadata(self, column_name: str):
 
@@ -60,7 +74,7 @@ class ESGContextIntelligenceV2:
         return any(meta in col for meta in self.metadata_fields)
 
     # =====================================================
-    # 🧠 4. SCOPE DETECTOR
+    # 🧠 5. SCOPE DETECTION
     # =====================================================
     def detect_scope_hint(self, column_name: str):
 
@@ -75,11 +89,10 @@ class ESGContextIntelligenceV2:
         return None
 
     # =====================================================
-    # 🧠 5. MAIN MAPPING LOGIC
+    # 🧠 6. MAIN MAPPING LOGIC
     # =====================================================
     def map_column(self, column_name: str):
 
-        # ❌ STEP 1: FILTER METADATA
         if self.is_metadata(column_name):
             return {
                 "column": column_name,
@@ -96,9 +109,6 @@ class ESGContextIntelligenceV2:
         best_score = -1
         scores = {}
 
-        # =====================================================
-        # STEP 2: SEMANTIC MATCHING
-        # =====================================================
         for concept, data in ESG_CONCEPTS.items():
 
             emb = self.embeddings[concept]
@@ -116,18 +126,14 @@ class ESGContextIntelligenceV2:
 
         confidence = float(best_score)
 
-        # =====================================================
-        # STEP 3: SCOPE OVERRIDE LOGIC
-        # =====================================================
+        # scope override
         scope_hint = self.detect_scope_hint(column_name)
 
         if scope_hint:
             best_match = scope_hint
             confidence = max(confidence, 0.75)
 
-        # =====================================================
-        # STEP 4: LOW CONFIDENCE HANDLING
-        # =====================================================
+        # low confidence
         if confidence < 0.45:
             return {
                 "column": column_name,
@@ -139,33 +145,15 @@ class ESGContextIntelligenceV2:
                 "scores": scores
             }
 
-        # =====================================================
-        # STEP 5: FINAL OUTPUT
-        # =====================================================
         return {
             "column": column_name,
             "concept": best_match,
             "esrs": ESG_CONCEPTS[best_match]["esrs"],
             "confidence": confidence,
             "status": "mapped",
-            "reason": self.explain(column_name, best_match, scores),
+            "reason": f"Mapped to {best_match} via semantic similarity",
             "scores": scores
         }
-
-    # =====================================================
-    # 🧠 6. EXPLAINABILITY LAYER
-    # =====================================================
-    def explain(self, column, concept, scores):
-
-        top = sorted(scores.items(), key=lambda x: x[1], reverse=True)
-
-        explanation = (
-            f"Column '{column}' was mapped to '{concept}' "
-            f"because it had highest semantic similarity "
-            f"({top[0][1]:.3f}) compared to other ESG categories."
-        )
-
-        return explanation
 
     # =====================================================
     # 🧠 7. BATCH PROCESSING
@@ -181,34 +169,36 @@ class ESGContextIntelligenceV2:
 
 
 # =========================================================
-# 🚀 8. RUN EXAMPLE (MIT ECHTEN DATEN + CSV EXPORT)
+# 🚀 8. MAIN PIPELINE (FIXED + ROBUST)
 # =========================================================
 if __name__ == "__main__":
 
-    # 📊 Beispiel-Daten (wichtig: nicht leer!)
-    df = pd.DataFrame({
-        "timestamp": ["2024-01-01"],
-        "location": ["Berlin"],
-        "energy_kwh": [1200],
-        "scope1_emissions_kgco2e": [350],
-        "water_liters": [5000],
-        "waste_kg": [200]
-    })
+    # 📊 LOAD CSV
+    df = pd.read_csv("testdata.csv")
 
-    engine = ESGContextIntelligenceV2()
+    # 🧹 CLEAN DATA (IMPORTANT FIX)
+    engine = ESGContextIntelligenceV3()
+    df = engine.clean_columns(df)
 
+    print("\n📊 CLEANED INPUT COLUMNS:")
+    print(df.columns.tolist())
+
+    print("\n📊 INPUT DATA SAMPLE:")
+    print(df.head())
+
+    # 🧠 RUN AI ENGINE
     results = engine.process_dataframe(df)
 
-    # 📁 Ergebnisse in DataFrame umwandeln
+    # 📁 TO DATAFRAME
     results_df = pd.DataFrame(results)
 
-    # optional: Scores entfernen (sauberere CSV)
+    # optional cleanup
     if "scores" in results_df.columns:
         results_df = results_df.drop(columns=["scores"])
 
-    # 📁 CSV speichern
+    # 💾 SAVE OUTPUT
     results_df.to_csv("esg_mapping_results.csv", index=False)
 
-    # 🖨️ Ausgabe anzeigen
-    print("\n=== ESG Mapping Ergebnisse ===\n")
+    # 🖨️ OUTPUT
+    print("\n=== ESG MAPPING RESULTS ===\n")
     print(results_df)

@@ -1,0 +1,7 @@
+timestamp,site_id,location_country,purchased_electricity_mwh,total_fuel_oil_liters,scope1_direct_emissions,emissions_indirect_market_based,freshwater_withdrawal_m3,hazardous_waste_disposed_kg,non_hazardous_trash,production_volume_units,employee_count,natural_gas_heating_kwh,biomass_energy,recycled_plastic_weight,cooling_water_discharge,co2_transport_fleet,office_paper_consumption,renewable_energy_share_pct,raw_material_input_tons
+2026-01-01 08:00,PLANT-01,Germany,450.5,1200,89.2,45.1,1500,120.5,500,10000,250,5500,200,45.5,300,12.5,50,0.45,5000
+2026-01-02 08:00,PLANT-01,Germany,445.0,1150,87.0,44.8,1480,115.0,480,9800,250,5400,210,48.0,290,12.1,45,0.46,4900
+2026-01-03 08:00,PLANT-02,France,320.2,900,65.5,30.2,950,80.0,350,7500,180,3200,0,30.2,150,8.4,20,0.15,3200
+2026-01-04 08:00,PLANT-02,France,325.8,910,66.1,30.5,960,82.0,360,7600,180,3250,0,31.5,155,8.6,22,0.15,3250
+2026-01-05 08:00,PLANT-03,Italy,610.9,2500,150.3,75.9,2100,250.8,900,15000,400,8000,500,110.0,500,25.8,100,0.60,8500
+2026-01-06 08:00,PLANT-03,Italy,605.0,2450,148.5,75.1,2050,245.0,880,14800,400,7900,510,115.0,490,25.1,95,0.61,8400
