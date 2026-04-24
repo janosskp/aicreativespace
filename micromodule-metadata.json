@@ -1,0 +1,21 @@
+{
+    "dataset_name": "CSRD ESD Testdata Heidelberg (AI Generated)",
+    "description": "ESG Dataset by Site A-C for CSRD Reporting compliance",
+    "collection_date": "01-01-2026",
+    "location": "Heidelberg Site A",
+    "sampling_rate": "Hourly",
+    "units": { 
+        "energy_kwh": "kWh",
+        "scope1_emissions_kgco2e": "kg",
+        "water_liters": "l",
+        "waste_kg": "kg"
+    },
+    "file_format": "csv",
+    "contributors": "esg_data_team",
+    "compliance alignment": [ 
+        "ESRS E1 Climate Change",
+        "ESRS E2 Pollution"
+    ],
+    "notes": "AI generated file for testing purposes only",
+    "related_file": "csrd_esg_dataset"
+}
